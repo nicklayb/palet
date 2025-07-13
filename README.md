@@ -30,7 +30,7 @@ Add the flake to your NixOS configuration:
 {
   inputs = {
     nixpkgs.url = "github:NixOS/nixpkgs/nixos-unstable";
-    palet.url = "github:user/palet";  # Replace with your repo URL
+    palet.url = "github:nickklayb/palet";
   };
 
   outputs = { nixpkgs, palet, ... }: {
