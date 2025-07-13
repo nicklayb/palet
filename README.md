@@ -22,61 +22,17 @@ A fast, modern application launcher built with GTK4 and Rust. Palet provides ins
 
 ### Using Nix Flakes (Recommended)
 
-#### For NixOS Users
-
-Add the flake to your NixOS configuration:
-
-```nix
-{
-  inputs = {
-    nixpkgs.url = "github:NixOS/nixpkgs/nixos-unstable";
-    palet.url = "github:nicklayb/palet";
-  };
-
-  outputs = { nixpkgs, palet, ... }: {
-    nixosConfigurations.yourhostname = nixpkgs.lib.nixosSystem {
-      system = "x86_64-linux";
-      modules = [
-        palet.nixosModules.default
-        {
-          programs.palet = {
-            enable = true;
-            settings = {
-              width = 800;
-              height = 600;
-              terminal = "alacritty -e";
-              
-              custom_commands = {
-                htop = {
-                  name = "htop";
-                  command = "htop";
-                  description = "System monitor";
-                  tty = true;
-                };
-                
-                shutdown = {
-                  name = "Shutdown";
-                  command = "systemctl poweroff";
-                  description = "Power off the system";
-                };
-              };
-            };
-          };
-        }
-      ];
-    };
-  };
-}
-```
-
-#### For Non-NixOS Users
-
 ```bash
 # Install directly from flake
-nix profile install github:user/palet
+nix profile install github:nicklayb/palet
 
-# Or build and run locally
-nix run github:user/palet
+# Or build and run locally  
+nix run github:nicklayb/palet
+
+# Or add to your NixOS configuration packages
+environment.systemPackages = with pkgs; [
+  (inputs.palet.packages.${system}.default)
+];
 ```
 
 ### Building from Source

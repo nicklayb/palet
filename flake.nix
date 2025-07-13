@@ -8,15 +8,6 @@
   };
 
   outputs = { self, nixpkgs, rust-overlay, flake-utils }:
-    let
-      # Export NixOS module
-      nixosModules.palet = import ./nixos-module.nix;
-      nixosModules.default = nixosModules.palet;
-    in
-    {
-      # Export modules at the top level
-      inherit nixosModules;
-    } // 
     flake-utils.lib.eachDefaultSystem (system:
       let
         overlays = [ (import rust-overlay) ];
