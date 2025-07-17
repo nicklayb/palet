@@ -14,8 +14,6 @@ A fast, modern application launcher built with GTK4 and Rust. Palet provides ins
 - **Arithmetic Evaluation**: Built-in calculator for quick math
 - **Web Search Fallback**: Search the web when no local results found
 - **Configurable**: Customize dimensions, styling, terminal, and search URLs
-- **Keyboard Navigation**: Full keyboard control with arrow keys and Enter
-- **Auto-scroll**: List automatically scrolls to keep selection visible
 - **CSS Styling**: Fully customizable appearance via CSS
 
 ## Installation
