@@ -1,7 +1,7 @@
 use serde::{Deserialize, Serialize};
+use std::collections::HashMap;
 use std::fs;
 use std::path::PathBuf;
-use std::collections::HashMap;
 
 #[derive(Serialize, Deserialize, Clone, Debug)]
 pub struct CustomCommand {
@@ -14,58 +14,53 @@ pub struct CustomCommand {
     pub tty: bool,
 }
 
+pub type CustomCommands = HashMap<String, CustomCommand>;
+
 #[derive(Serialize, Deserialize, Clone)]
 pub struct Config {
+    #[serde(default = "default_width")]
     pub width: i32,
+    #[serde(default = "default_height")]
     pub height: i32,
+    #[serde(default = "default_placeholder")]
     pub placeholder: String,
+    #[serde(default = "default_search_url")]
     pub search_url: String,
     #[serde(default = "default_terminal")]
     pub terminal: String,
     #[serde(default)]
-    pub custom_commands: HashMap<String, CustomCommand>,
+    pub custom_commands: CustomCommands,
+    #[serde(default)]
+    pub extra_paths: Vec<String>,
 }
 
+fn default_height() -> i32 {
+    700
+}
+fn default_width() -> i32 {
+    700
+}
+
+fn default_placeholder() -> String {
+    "Search...".to_string()
+}
+fn default_search_url() -> String {
+    "https://www.google.com/search?q={q}".to_string()
+}
 fn default_terminal() -> String {
     "alacritty -e".to_string()
 }
 
 impl Default for Config {
     fn default() -> Self {
-        let mut custom_commands = HashMap::new();
-        
-        // Add some example custom commands
-        custom_commands.insert("sleep".to_string(), CustomCommand {
-            name: "Sleep".to_string(),
-            command: "systemctl suspend".to_string(),
-            description: Some("Put the system to sleep".to_string()),
-            accepts_arguments: false,
-            tty: false,
-        });
-        
-        custom_commands.insert("lock".to_string(), CustomCommand {
-            name: "Lock Screen".to_string(),
-            command: "loginctl lock-session".to_string(),
-            description: Some("Lock the current session".to_string()),
-            accepts_arguments: false,
-            tty: false,
-        });
-        
-        custom_commands.insert("echo".to_string(), CustomCommand {
-            name: "echo".to_string(),
-            command: "echo".to_string(),
-            description: Some("Echo the provided arguments".to_string()),
-            accepts_arguments: true,
-            tty: true,
-        });
-        
         Self {
-            width: 700,
-            height: 700,
-            placeholder: "Type here...".to_string(),
-            search_url: "https://www.google.com/search?q={q}".to_string(),
+            width: default_width(),
+            height: default_height(),
+            placeholder: default_placeholder(),
+            search_url: default_search_url(),
             terminal: default_terminal(),
-            custom_commands,
+            custom_commands: HashMap::new(),
+            extra_paths: Vec::new(),
         }
     }
 }
