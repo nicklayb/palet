@@ -1,5 +1,6 @@
-use std::fs;
 use std::path::Path;
+
+use freedesktop_entry_parser::AttrSelector;
 
 use crate::application::Application;
 
@@ -14,58 +15,27 @@ pub fn parse_desktop_file(path: &Path) -> Option<Application> {
         return None;
     }
 
-    let content = fs::read_to_string(path).ok()?;
-    let mut name = None;
-    let mut exec = None;
-    let mut description = None;
-    let mut hidden = false;
-    let mut no_display = false;
-    let mut app_type = None;
-    let mut in_desktop_entry = false;
+    let entry = freedesktop_entry_parser::parse_entry(path).ok()?;
+    let section = entry.section("Desktop Entry");
+    ensure_application(string_name, &section)?;
+    ensure_visible(string_name, &section)?;
+    let name = extract_name(string_name, &section)?;
+    let exec = extract_exec(string_name, &section)?;
+    let description = section.attr("Comment").map(|value| value.to_string());
 
-    for line in content.lines() {
-        let line = line.trim();
+    let app = Application {
+        name,
+        exec,
+        description,
+    };
+    println!("{:?}", app);
 
-        // Skip empty lines and comments
-        if line.is_empty() || line.starts_with('#') {
-            continue;
-        }
+    Some(app)
+}
 
-        // Check for section headers
-        if line.starts_with('[') && line.ends_with(']') {
-            in_desktop_entry = line == "[Desktop Entry]";
-            continue;
-        }
-
-        // Only parse if we're in the [Desktop Entry] section
-        if !in_desktop_entry {
-            continue;
-        }
-
-        if line.starts_with("Name=") && !line.contains('[') {
-            // Use the default name (without locale)
-            name = Some(line[5..].to_string());
-        } else if line.starts_with("Exec=") {
-            exec = Some(line[5..].to_string());
-        } else if line.starts_with("Comment=") && !line.contains('[') {
-            description = Some(line[8..].to_string());
-        } else if line.starts_with("Hidden=") {
-            hidden = line[7..].trim().to_lowercase() == "true";
-        } else if line.starts_with("NoDisplay=") {
-            no_display = line[10..].trim().to_lowercase() == "true";
-        } else if line.starts_with("Type=") {
-            app_type = Some(line[5..].to_string());
-        }
-    }
-
-    // Only include Application type entries
-    if app_type.as_deref() != Some("Application") {
-        println!(
-            "[WARNING] {} Not an Application type (type: {:?})",
-            string_name, app_type
-        );
-        return None;
-    }
+fn ensure_visible(string_name: &str, section: &AttrSelector<&str>) -> Option<()> {
+    let hidden = section.attr("Hidden").unwrap_or("false") == "true";
+    let no_display = section.attr("NoDisplay").unwrap_or("false") == "true";
 
     if hidden || no_display {
         println!(
@@ -74,22 +44,51 @@ pub fn parse_desktop_file(path: &Path) -> Option<Application> {
         );
         return None;
     }
+    Some(())
+}
 
-    let name = if let Some(n) = name {
-        n
-    } else {
-        println!("[WARNING] {} No Name field found", string_name);
+fn extract_exec(string_name: &str, section: &AttrSelector<&str>) -> Option<String> {
+    let exec = section.attr("Exec");
+
+    clean_exec(string_name, exec).map_or_else(
+        || {
+            println!("[WARNING] {} Invalid exec", string_name);
+            return None;
+        },
+        |item| Some(item.to_string()),
+    )
+}
+
+fn extract_name(string_name: &str, section: &AttrSelector<&str>) -> Option<String> {
+    section.attr("Name").map_or_else(
+        || {
+            println!("[WARNING] {} No Name field found", string_name);
+            None
+        },
+        |item| Some(item.to_string()),
+    )
+}
+
+fn ensure_application(string_name: &str, section: &AttrSelector<&str>) -> Option<String> {
+    let app_type = section.attr("Type");
+    if app_type.as_deref() != Some("Application") {
+        println!(
+            "[WARNING] {} Not an Application type (type: {:?})",
+            string_name, app_type
+        );
         return None;
-    };
+    }
+    app_type.map(|item| item.to_string())
+}
 
-    let mut exec = if let Some(e) = exec {
-        e
+// Clean up exec command (remove field codes like %f, %u, %F, %U, etc.)
+fn clean_exec(string_name: &str, exec: Option<&str>) -> Option<String> {
+    let exec = if let Some(inner_exec) = exec {
+        inner_exec
     } else {
         println!("[WARNING] {} No Exec field found", string_name);
         return None;
     };
-
-    // Clean up exec command (remove field codes like %f, %u, %F, %U, etc.)
     let parts: Vec<&str> = exec.split_whitespace().collect();
     let mut cleaned_parts = Vec::new();
 
@@ -104,13 +103,7 @@ pub fn parse_desktop_file(path: &Path) -> Option<Application> {
         return None;
     }
 
-    exec = cleaned_parts.join(" ");
-
-    Some(Application {
-        name,
-        exec,
-        description,
-    })
+    Some(cleaned_parts.join(" ").to_string())
 }
 
 fn is_desktop_entry(path: &Path) -> bool {
