@@ -1,4 +1,5 @@
 use gtk4::ApplicationWindow;
+
 /// Loads CSS from XDG config directory or uses default styles
 ///
 /// # Returns

@@ -14,6 +14,14 @@ pub struct CustomCommand {
     pub tty: bool,
 }
 
+#[derive(Serialize, Deserialize, Clone, Debug)]
+pub struct SearchUrl {
+    pub name: String,
+    pub url: String,
+}
+
+pub type SearchUrls = HashMap<String, SearchUrl>;
+
 pub type CustomCommands = HashMap<String, CustomCommand>;
 
 #[derive(Serialize, Deserialize, Clone)]
@@ -24,8 +32,8 @@ pub struct Config {
     pub height: i32,
     #[serde(default = "default_placeholder")]
     pub placeholder: String,
-    #[serde(default = "default_search_url")]
-    pub search_url: String,
+    #[serde(default = "default_search_urls")]
+    pub search_urls: SearchUrls,
     #[serde(default = "default_terminal")]
     pub terminal: String,
     #[serde(default)]
@@ -44,8 +52,14 @@ fn default_width() -> i32 {
 fn default_placeholder() -> String {
     "Search...".to_string()
 }
-fn default_search_url() -> String {
-    "https://www.google.com/search?q={q}".to_string()
+fn default_search_urls() -> SearchUrls {
+    HashMap::from([(
+        "google".to_string(),
+        SearchUrl {
+            name: "Google".to_string(),
+            url: "https://www.google.com/search?q={q}".to_string(),
+        },
+    )])
 }
 fn default_terminal() -> String {
     "alacritty -e".to_string()
@@ -57,7 +71,7 @@ impl Default for Config {
             width: default_width(),
             height: default_height(),
             placeholder: default_placeholder(),
-            search_url: default_search_url(),
+            search_urls: default_search_urls(),
             terminal: default_terminal(),
             custom_commands: HashMap::new(),
             extra_paths: Vec::new(),
@@ -78,4 +92,11 @@ pub fn load_config() -> Config {
         }
     }
     Config::default()
+}
+
+impl SearchUrl {
+    pub fn build(&self, query: &str) -> String {
+        let encoded_query = urlencoding::encode(query);
+        self.url.replace("{q}", &encoded_query)
+    }
 }

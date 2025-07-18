@@ -1,6 +1,6 @@
 use crate::{
     application::Application,
-    config::{Config, CustomCommand},
+    config::{Config, CustomCommand, SearchUrl},
 };
 
 #[derive(Debug, Clone)]
@@ -14,7 +14,10 @@ pub enum Queryable {
         expression: String,
         result: String,
     },
-    SearchFallback(String),
+    SearchFallback {
+        search_url: SearchUrl,
+        query: String,
+    },
 }
 
 impl Queryable {
@@ -29,7 +32,10 @@ impl Queryable {
                 }
             }
             Queryable::Calculator { expression, result } => format!("{} = {}", expression, result),
-            Queryable::SearchFallback(_) => "Search".to_string(),
+            Queryable::SearchFallback {
+                search_url: SearchUrl { name, .. },
+                ..
+            } => format!("Search {}", name),
         }
     }
 
@@ -47,7 +53,10 @@ impl Queryable {
                 }
             }
             Queryable::Calculator { .. } => Some("Copy result to clipboard".to_string()),
-            Queryable::SearchFallback(query) => Some(format!("Search the web for '{}'", query)),
+            Queryable::SearchFallback {
+                search_url: SearchUrl { name, .. },
+                query,
+            } => Some(format!("Search '{}' on {}", query, name)),
         }
     }
 
@@ -62,8 +71,8 @@ impl Queryable {
             Queryable::Calculator { result, .. } => {
                 copy_to_clipboard(result);
             }
-            Queryable::SearchFallback(query) => {
-                perform_web_search(query, &config.search_url);
+            Queryable::SearchFallback { search_url, query } => {
+                perform_web_search(query, search_url);
             }
         }
     }
@@ -73,7 +82,7 @@ impl Queryable {
             Queryable::Application(_) => ("app-name", "description"),
             Queryable::CustomCommand { .. } => ("custom-command", "description"),
             Queryable::Calculator { .. } => ("calculator-result", "description"),
-            Queryable::SearchFallback(_) => ("search-item", "description"),
+            Queryable::SearchFallback { .. } => ("search-item", "description"),
         };
     }
 }
@@ -87,10 +96,8 @@ fn launch_application(app: &Application) {
 /// # Arguments
 /// * `query` - The search query
 /// * `search_url_template` - URL template with {q} placeholder
-fn perform_web_search(query: &str, search_url_template: &str) {
-    let encoded_query = urlencoding::encode(query);
-    let search_url = search_url_template.replace("{q}", &encoded_query);
-
+fn perform_web_search(query: &str, search_url: &SearchUrl) {
+    let search_url = search_url.build(query);
     spawn("xdg-open", vec![&search_url]);
 }
 

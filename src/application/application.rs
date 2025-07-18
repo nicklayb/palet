@@ -1,5 +1,5 @@
 use crate::application::parser;
-use crate::config::{Config, CustomCommands};
+use crate::config::{Config, CustomCommands, SearchUrls};
 use crate::queryable::Queryable;
 use evalexpr;
 use std::fs;
@@ -95,11 +95,7 @@ fn format_expression_result(result: evalexpr::Value) -> Option<String> {
     }
 }
 
-pub fn filter_applications(
-    apps: &[Application],
-    custom_commands: &CustomCommands,
-    query: &str,
-) -> Vec<Queryable> {
+pub fn filter_applications(apps: &[Application], config: &Config, query: &str) -> Vec<Queryable> {
     if query.trim().is_empty() {
         return Vec::new();
     }
@@ -116,7 +112,7 @@ pub fn filter_applications(
 
     let query_lower = query.to_lowercase();
 
-    let custom_results = build_custom_commands(query_lower.clone(), custom_commands);
+    let custom_results = build_custom_commands(query_lower.clone(), &config.custom_commands);
 
     results.extend(custom_results);
 
@@ -135,10 +131,24 @@ pub fn filter_applications(
     results.extend(app_results);
 
     if results.is_empty() {
-        results.push(Queryable::SearchFallback(query.to_string()));
+        let search_queryables = build_search_urls(query.to_string(), &config.search_urls);
+        results.extend(search_queryables);
     }
 
     results
+}
+
+fn build_search_urls(query: String, search_urls: &SearchUrls) -> Vec<Queryable> {
+    let mut queryables: Vec<Queryable> = Vec::new();
+
+    for search_url in search_urls.values() {
+        queryables.push(Queryable::SearchFallback {
+            search_url: search_url.clone(),
+            query: query.clone(),
+        })
+    }
+
+    queryables
 }
 
 fn build_custom_commands(query: String, custom_commands: &CustomCommands) -> Vec<Queryable> {

@@ -62,8 +62,14 @@ height = 700
 # Text input placeholder
 placeholder = "Type here..."
 
-# Search URL template (use {q} for query placeholder)
-search_url = "https://duckduckgo.com/?q={q}"
+# Search URL templates (use {q} for query placeholder)
+[search_urls.google]
+name = "Google"
+url = "https://google.com/?q={q}"
+
+[search_urls.duckduckgo]
+name = "DuckDuckGo"
+url = "https://duckduckgo.com/?q={q}"
 
 # Terminal command to use for tty commands
 terminal = "alacritty -e"

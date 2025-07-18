@@ -95,8 +95,7 @@ fn populate_app_list(
         list_box.remove(&child);
     }
 
-    let filtered_items =
-        application::filter_applications(applications, &config.custom_commands, query);
+    let filtered_items = application::filter_applications(applications, &config, query);
 
     if filtered_items.is_empty() {
         scrolled_window.set_visible(false);
@@ -232,8 +231,7 @@ fn handle_item_click(
 ) {
     let index = row.index() as usize;
     let text = entry.text();
-    let filtered_items =
-        application::filter_applications(applications, &config.custom_commands, &text);
+    let filtered_items = application::filter_applications(applications, &config, &text);
 
     if let Some(item) = filtered_items.get(index) {
         item.action(config);
@@ -373,8 +371,7 @@ fn handle_enter_key(
     window: &ApplicationWindow,
 ) {
     let text = entry.text();
-    let filtered_items =
-        application::filter_applications(applications, &config.custom_commands, &text);
+    let filtered_items = application::filter_applications(applications, &config, &text);
 
     let index = if let Some(selected_row) = list_box.selected_row() {
         let index = selected_row.index() as usize;
