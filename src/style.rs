@@ -1,4 +1,5 @@
 use gtk4::ApplicationWindow;
+use log::info;
 
 /// Loads CSS from XDG config directory or uses default styles
 ///
@@ -9,7 +10,8 @@ fn load_css_styles() -> String {
     if let Some(config_dir) = dirs::config_dir() {
         let css_path = config_dir.join("palet").join("style.css");
         if let Ok(custom_css) = std::fs::read_to_string(&css_path) {
-            println!("[INFO] Loaded custom CSS from: {}", css_path.display());
+            let css_file = css_path.display();
+            info!("Loaded custom CSS from: {css_file}");
             return custom_css;
         }
     }

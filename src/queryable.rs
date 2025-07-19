@@ -1,3 +1,5 @@
+use log::debug;
+
 use crate::{
     application::Application,
     config::{Config, CustomCommand, SearchUrl},
@@ -63,7 +65,7 @@ impl Queryable {
     pub fn action(&self, config: &Config) {
         match self {
             Queryable::Application(app) => {
-                launch_application(app);
+                launch_application(app, &config.terminal);
             }
             Queryable::CustomCommand { command, arguments } => {
                 execute_custom_command(command, arguments.as_deref(), &config.terminal);
@@ -87,8 +89,13 @@ impl Queryable {
     }
 }
 
-fn launch_application(app: &Application) {
-    spawn_shell(&app.exec, vec![]);
+fn launch_application(app: &Application, terminal: &str) {
+    if app.terminal {
+        let command_name = format!("{} {}", terminal, app.exec);
+        spawn_shell(&command_name, vec![]);
+    } else {
+        spawn_shell(&app.exec, vec![]);
+    }
 }
 
 /// Performs a web search using the configured search URL
@@ -141,6 +148,7 @@ fn spawn_shell(command: &str, arguments: Vec<&str>) {
 }
 
 fn spawn(command_name: &str, arguments: Vec<&str>) {
+    debug!("Spawing {command_name} {arguments:?}");
     let _ = std::process::Command::new(command_name)
         .args(&arguments)
         .stdin(std::process::Stdio::null())

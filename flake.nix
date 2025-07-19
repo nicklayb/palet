@@ -21,6 +21,7 @@
 
         nativeBuildInputs = with pkgs; [
           rustToolchain
+          rust-analyzer
           pkg-config
           wrapGAppsHook4
         ];
