@@ -2,6 +2,7 @@ use crate::application::parser;
 use crate::config::{Config, CustomCommands, SearchUrls};
 use crate::queryable::Queryable;
 use evalexpr;
+use log::info;
 use std::fs;
 
 #[derive(Debug, Clone)]
@@ -9,6 +10,7 @@ pub struct Application {
     pub name: String,
     pub exec: String,
     pub description: Option<String>,
+    pub terminal: bool,
 }
 
 pub fn scan_applications(config: &Config) -> Vec<Application> {
@@ -26,7 +28,8 @@ pub fn scan_applications(config: &Config) -> Vec<Application> {
                     apps.push(app);
                 }
             }
-            println!("[INFO] {} Found {} / {}", app_dir, apps.len(), total_files);
+            let app_count = apps.len();
+            info!("{app_dir} Found {app_count} / {total_files}");
         }
     }
 

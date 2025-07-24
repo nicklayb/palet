@@ -3,6 +3,8 @@ use gtk4::{
     Application, ApplicationWindow, Box, Entry, EventControllerKey, Label, ListBox, ListBoxRow,
     Orientation, ScrolledWindow, glib,
 };
+use log::LevelFilter;
+use std::env;
 
 mod application;
 mod config;
@@ -14,9 +16,23 @@ const APP_ID: &str = "com.example.palet";
 
 /// Entry point for the application
 fn main() -> glib::ExitCode {
+    configure_logger();
     let app = Application::builder().application_id(APP_ID).build();
     app.connect_activate(build_ui);
-    app.run()
+    app.run_with_args(&[] as &[String])
+}
+
+fn configure_logger() {
+    let args: Vec<String> = env::args().collect();
+    colog::init();
+
+    let level = if args.iter().any(|arg| arg == "-v" || arg == "--verbose") {
+        LevelFilter::Trace
+    } else {
+        LevelFilter::Error
+    };
+
+    log::set_max_level(level);
 }
 
 /// Creates the text entry widget
