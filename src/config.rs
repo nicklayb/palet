@@ -40,6 +40,14 @@ pub struct Config {
     pub custom_commands: CustomCommands,
     #[serde(default)]
     pub extra_paths: Vec<String>,
+    #[serde(default = "default_db_path")]
+    pub db_path: PathBuf,
+}
+
+fn default_db_path() -> PathBuf {
+    dirs::config_dir()
+        .map(|dir| dir.join("palet").join("index.db"))
+        .unwrap()
 }
 
 fn default_height() -> i32 {
@@ -73,6 +81,7 @@ impl Default for Config {
             placeholder: default_placeholder(),
             search_urls: default_search_urls(),
             terminal: default_terminal(),
+            db_path: default_db_path(),
             custom_commands: HashMap::new(),
             extra_paths: Vec::new(),
         }
@@ -83,7 +92,15 @@ fn get_config_path() -> Option<PathBuf> {
     dirs::config_dir().map(|dir| dir.join("palet").join("config.toml"))
 }
 
+fn create_config_folder() {
+    let folder = dirs::config_dir().map(|dir| dir.join("palet")).unwrap();
+
+    fs::create_dir(folder);
+}
+
 pub fn load_config() -> Config {
+    create_config_folder();
+
     if let Some(config_path) = get_config_path() {
         if let Ok(content) = fs::read_to_string(&config_path) {
             if let Ok(config) = toml::from_str::<Config>(&content) {

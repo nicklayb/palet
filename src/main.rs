@@ -480,6 +480,7 @@ fn show_window(window: &ApplicationWindow, entry: &Entry, scrolled_window: &Scro
 /// * `app` - The GTK Application instance
 fn build_ui(app: &Application) {
     let config = config::load_config();
+    database::initialize(&config.db_path);
     let applications = application::scan_applications(&config);
 
     let entry = create_entry(&config);
