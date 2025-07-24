@@ -6,6 +6,7 @@ use gtk4::{
 
 mod application;
 mod config;
+mod database;
 mod queryable;
 mod style;
 
