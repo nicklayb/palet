@@ -95,7 +95,7 @@ fn get_config_path() -> Option<PathBuf> {
 fn create_config_folder() {
     let folder = dirs::config_dir().map(|dir| dir.join("palet")).unwrap();
 
-    fs::create_dir(folder);
+    fs::create_dir(folder).unwrap();
 }
 
 pub fn load_config() -> Config {

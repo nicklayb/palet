@@ -26,7 +26,12 @@ pub fn initialize(file_name: &PathBuf) -> Option<Connection> {
 }
 
 fn drop_database(conn: &Connection) {
-    drop_metadata_table(conn)
+    drop_metadata_table(conn);
+    drop_entries_table(conn)
+}
+
+fn drop_entries_table(conn: &Connection) {
+    conn.execute("DROP TABLE IF EXISTS entries", ()).unwrap();
 }
 
 fn drop_metadata_table(conn: &Connection) {
@@ -36,7 +41,7 @@ fn drop_metadata_table(conn: &Connection) {
 fn initialize_database(conn: &Connection) {
     create_metadata_table(conn);
     insert_version(conn);
-    // create_entries_table(conn);
+    create_entries_table(conn);
 }
 
 fn insert_version(conn: &Connection) {
@@ -45,6 +50,26 @@ fn insert_version(conn: &Connection) {
         &[(":version", VERSION)],
     )
     .unwrap();
+}
+
+fn create_entries_table(conn: &Connection) {
+    match conn.execute(
+        "
+    CREATE TABLE IF NOT EXISTS entries (
+        id INTEGER PRIMARY KEY,
+        name VARCHAR NOT NULL
+        description VARCHAR
+        actionable TEXT
+    )",
+        (),
+    ) {
+        Ok(_) => {
+            debug!("Entries table created");
+        }
+        Err(error) => {
+            error!("Could not create entries table {error:?}");
+        }
+    }
 }
 
 fn create_metadata_table(conn: &Connection) {
