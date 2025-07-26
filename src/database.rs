@@ -56,9 +56,9 @@ fn create_entries_table(conn: &Connection) {
     match conn.execute(
         "
     CREATE TABLE IF NOT EXISTS entries (
-        id INTEGER PRIMARY KEY,
-        name VARCHAR NOT NULL
-        description VARCHAR
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        name VARCHAR NOT NULL,
+        description VARCHAR,
         actionable TEXT
     )",
         (),

@@ -34,6 +34,7 @@
           gdk-pixbuf
           atk
           direnv
+          sqlite
         ];
 
         runtimeDependencies = with pkgs; [

@@ -1,3 +1,4 @@
+use entry::{Actionable, ApplicationConfiguration};
 use gtk4::prelude::*;
 use gtk4::{
     Application, ApplicationWindow, Box, Entry, EventControllerKey, Label, ListBox, ListBoxRow,
@@ -9,6 +10,7 @@ use std::env;
 mod application;
 mod config;
 mod database;
+mod entry;
 mod queryable;
 mod style;
 
@@ -480,7 +482,19 @@ fn show_window(window: &ApplicationWindow, entry: &Entry, scrolled_window: &Scro
 /// * `app` - The GTK Application instance
 fn build_ui(app: &Application) {
     let config = config::load_config();
-    database::initialize(&config.db_path);
+    let connection = database::initialize(&config.db_path).unwrap();
+    let entry = entry::Entry {
+        id: 0,
+        name: "Zen".to_string(),
+        description: Some("Zen".to_string()),
+        actionable: Some(Actionable::Application(ApplicationConfiguration {
+            exec: "zen".to_string(),
+            terminal: false,
+        })),
+    };
+    // entry.insert(&connection);
+    let results = entry::Entry::select(&connection, "".to_string());
+    print!("{:?}", results);
     let applications = application::scan_applications(&config);
 
     let entry = create_entry(&config);
