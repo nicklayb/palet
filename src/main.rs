@@ -6,12 +6,13 @@ use gtk4::{
 };
 use log::LevelFilter;
 use std::env;
-
 mod application;
 mod config;
 mod database;
 mod entry;
+mod metadata;
 mod queryable;
+mod schema;
 mod style;
 
 const APP_ID: &str = "com.example.palet";
@@ -496,6 +497,7 @@ fn build_ui(app: &Application) {
     let results = entry::Entry::select(&connection, "".to_string());
     print!("{:?}", results);
     let applications = application::scan_applications(&config);
+    //let applications = vec![];
 
     let entry = create_entry(&config);
     let list_box = create_list_box();

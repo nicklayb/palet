@@ -3,6 +3,9 @@ use rusqlite::Connection;
 use rusqlite::named_params;
 use serde::{Deserialize, Serialize};
 
+use crate::schema::Field;
+use crate::schema::Schema;
+
 #[derive(Serialize, Deserialize, Clone, Debug)]
 pub struct ApplicationConfiguration {
     pub exec: String,
@@ -32,6 +35,41 @@ pub struct Entry {
     pub name: String,
     pub description: Option<String>,
     pub actionable: Option<Actionable>,
+}
+
+impl Schema for Entry {
+    fn table() -> String {
+        "entries".to_string()
+    }
+    fn primary_key() -> (Field, bool) {
+        (
+            Field {
+                name: "id".to_string(),
+                field_type: "INTEGER".to_string(),
+                nullable: false,
+            },
+            true,
+        )
+    }
+    fn fields() -> Vec<Field> {
+        vec![
+            Field {
+                name: "name".to_string(),
+                field_type: "VARCHAR".to_string(),
+                nullable: false,
+            },
+            Field {
+                name: "description".to_string(),
+                field_type: "VARCHAR".to_string(),
+                nullable: true,
+            },
+            Field {
+                name: "actionable".to_string(),
+                field_type: "TEXT".to_string(),
+                nullable: true,
+            },
+        ]
+    }
 }
 
 impl Entry {
