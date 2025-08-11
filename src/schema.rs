@@ -1,10 +1,14 @@
 use log::error;
 use rusqlite::{Connection, named_params};
 
-pub trait Schema {
-    fn table() -> String;
-    fn fields() -> Vec<Field>;
-    fn primary_key() -> (Field, bool);
+pub trait DatabaseSchema {
+    fn schema() -> Schema;
+}
+
+pub struct Schema {
+    pub table: String,
+    pub fields: Vec<Field>,
+    pub primary_key: Field,
 }
 
 pub struct Field {
@@ -20,31 +24,33 @@ impl Field {
     }
 }
 
-pub fn create_table<T: Schema>(conn: &Connection) {
-    let lines = T::fields()
-        .iter()
-        .map(|field| field.to_insert_statement())
-        .collect::<Vec<String>>()
-        .join(", ");
-    let (primary_key, _) = T::primary_key();
+impl Schema {
+    pub fn create_table(&self, conn: &Connection) {
+        let lines = self
+            .fields
+            .iter()
+            .map(|field| field.to_insert_statement())
+            .collect::<Vec<String>>()
+            .join(", ");
 
-    let statement = format!(
-        "CREATE TABLE IF NOT EXISTS {} ({}, {})",
-        T::table(),
-        primary_key.to_insert_statement(),
-        lines
-    );
+        let statement = format!(
+            "CREATE TABLE IF NOT EXISTS {} ({}, {})",
+            self.table,
+            self.primary_key.to_insert_statement(),
+            lines
+        );
 
-    if let Err(error) = conn.execute(&statement, ()) {
-        let table = T::table();
-        error!("Error while creating {table}: {error:?}");
-    };
-}
+        if let Err(error) = conn.execute(&statement, ()) {
+            let table = &self.table;
+            error!("Error while creating {table}: {error:?}");
+        };
+    }
 
-pub fn drop_table<T: Schema>(conn: &Connection) {
-    let statement = format!("DROP TABLE IF EXISTS {}", T::table());
-    if let Err(error) = conn.execute(&statement, ()) {
-        let table = T::table();
-        error!("Error while dropping {table}: {error:?}");
-    };
+    pub fn drop_table(&self, conn: &Connection) {
+        let statement = format!("DROP TABLE IF EXISTS {}", self.table);
+        if let Err(error) = conn.execute(&statement, ()) {
+            let table = &self.table;
+            error!("Error while dropping {table}: {error:?}");
+        };
+    }
 }

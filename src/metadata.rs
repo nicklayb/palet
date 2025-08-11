@@ -1,6 +1,6 @@
 use rusqlite::Connection;
 
-use crate::schema::{Field, Schema};
+use crate::schema::{DatabaseSchema, Field, Schema};
 
 type Version = String;
 
@@ -12,26 +12,21 @@ pub struct Metadata {
     pub value: String,
 }
 
-impl Schema for Metadata {
-    fn table() -> String {
-        "metadata".to_string()
-    }
-    fn primary_key() -> (Field, bool) {
-        (
-            Field {
+impl DatabaseSchema for Metadata {
+    fn schema() -> Schema {
+        Schema {
+            table: "metadata".to_string(),
+            primary_key: Field {
                 name: "name".to_string(),
                 field_type: "VARCHAR".to_string(),
                 nullable: false,
             },
-            false,
-        )
-    }
-    fn fields() -> Vec<Field> {
-        vec![Field {
-            name: "value".to_string(),
-            field_type: "VARCHAR".to_string(),
-            nullable: false,
-        }]
+            fields: vec![Field {
+                name: "value".to_string(),
+                field_type: "VARCHAR".to_string(),
+                nullable: false,
+            }],
+        }
     }
 }
 

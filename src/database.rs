@@ -3,7 +3,7 @@ use std::path::PathBuf;
 use log::{debug, error, info};
 use rusqlite::Connection;
 
-use crate::{entry::Entry, metadata::Metadata, schema};
+use crate::{entry::Entry, metadata::Metadata, schema::DatabaseSchema};
 
 pub fn initialize(file_name: &PathBuf) -> Option<Connection> {
     match Connection::open(file_name) {
@@ -25,13 +25,13 @@ pub fn initialize(file_name: &PathBuf) -> Option<Connection> {
 
 fn drop_database(conn: &Connection) {
     info!("DROPPPING");
-    schema::drop_table::<Entry>(conn);
-    schema::drop_table::<Metadata>(conn);
+    Entry::schema().drop_table(conn);
+    Metadata::schema().drop_table(conn);
 }
 
 fn initialize_database(conn: &Connection) {
     info!("INIT");
-    schema::create_table::<Metadata>(conn);
-    schema::create_table::<Entry>(conn);
+    Metadata::schema().create_table(conn);
+    Entry::schema().create_table(conn);
     Metadata::insert_version(conn);
 }
